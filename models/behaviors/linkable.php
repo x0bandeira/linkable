@@ -26,7 +26,7 @@
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *  
- * @version 0.2; 
+ * @version 1.0; 
  */
  
 class LinkableBehavior extends ModelBehavior {
