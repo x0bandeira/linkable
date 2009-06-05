@@ -23,6 +23,16 @@
  * Linkable Behavior. Taking it easy in your DB.
  * RafaelBandeira <rafaelbandeira3(at)gmail(dot)com>
  *
+ * 
+ * This is a fork by GiulianoB (on github)
+ * It provides the following new features:
+ * -Plays nice with Containable which means that you can force INNER JOINS for hasOne/belongsTo and at the same time do a query on a hasMany/HABTM relationship.
+ * 
+ * -The original code required the relationship to be established from the target to the source. 
+ * (e.g. if you are linking Post => User then User would have to define a hasOne Post relationship. 
+ * However, this proves problematic when doing on-the-fly binds as you would have to bind on more than just the model you are querying from)
+ * 
+ *  
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *  
@@ -45,7 +55,10 @@ class LinkableBehavior extends ModelBehavior {
 		if (isset($query[$this->_key])) {
 			$optionsDefaults = $this->_defaults + array('reference' => $Model->alias, $this->_key => array());
 			$optionsKeys = $this->_options + array($this->_key => true);
-			$query = am(array('joins' => array()), $query, array('recursive' => -1));
+			if (empty($query['contain']))
+				$query = am(array('joins' => array()), $query, array('recursive' => -1));
+			else
+				$query = am(array('joins' => array()), $query); //if containable is being used let it set the recursive!
 			$iterators[] = $query[$this->_key];
 			$cont = 0;
 			do {
@@ -63,8 +76,7 @@ class LinkableBehavior extends ModelBehavior {
 					$options = am($defaults, compact('alias'), $options);
 					if (empty($options['alias'])) {
 						throw new InvalidArgumentException(sprintf('%s::%s must receive aliased links', get_class($this), __FUNCTION__));
-					}
-
+					}					
 					if (empty($options['table']) && empty($options['class'])) {
 						$options['class'] = $options['alias'];
 					} elseif (!empty($options['table']) && empty($options['class'])) {
@@ -77,6 +89,9 @@ class LinkableBehavior extends ModelBehavior {
 					if (isset($associations[$Reference->alias])) {
 						$type = $associations[$Reference->alias];
 						$association = $_Model->{$type}[$Reference->alias];
+					} else if (isset($Reference->belongsTo[$_Model->alias])) {
+						$type = 'hasOne';
+						$association = $Reference->belongsTo[$_Model->alias];						
 					} else {
 						$_Model->bind($Reference->alias);
 						$type = 'belongsTo';
@@ -125,6 +140,7 @@ class LinkableBehavior extends ModelBehavior {
 					if (empty($options['table'])) {
 						$options['table'] = $db->fullTableName($_Model, true);
 					}
+					
 					if (!empty($options['fields'])) {
 						if ($options['fields'] === true && !empty($association['fields'])) {
 							$options['fields'] = $db->fields($_Model, null, $association['fields']);
@@ -133,20 +149,39 @@ class LinkableBehavior extends ModelBehavior {
 						} else {
 							$options['fields'] = $db->fields($_Model, null, $options['fields']);	
 						}
-						$query['fields'] = array_merge($query['fields'], $options['fields']);
+						
+						if (is_array($query['fields']))						
+							$query['fields'] = array_merge($query['fields'], $options['fields']);						
+						else						
+							$query['fields'] = array_merge($db->fields($Model), $options['fields']);						
 					}
-
+					else if (isset($options['fields']) && !is_array($options['fields']))
+					{
+						if (!empty($association['fields']))
+							$options['fields'] = $db->fields($_Model, null, $association['fields']);
+						else
+							$options['fields'] = $db->fields($_Model);
+						
+						if (is_array($query['fields']))
+							$query['fields'] = array_merge($query['fields'], $options['fields']);
+						else
+							$query['fields'] = array_merge($db->fields($Model), $options['fields']);
+					}
+					
 					$options[$this->_key] = am($options[$this->_key], array_diff_key($options, $optionsKeys));
 					$options = array_intersect_key($options, $optionsKeys);
 					if (!empty($options[$this->_key])) {
 						$iterators[] = $options[$this->_key] + array('defaults' => array_merge($defaults, array('reference' => $options['class'])));
 					}
+					$options['conditions'] = array($options['conditions']);
 					$query['joins'][] = array_intersect_key($options, array('type' => true, 'alias' => true, 'table' => true, 'conditions' => true));
 				}
 				++$cont;
 				$notDone = isset($iterators[$cont]);
 			} while ($notDone);
-		}
+		}		
+		unset($query['link']);
+		
 		return $query;
 	}
 }
