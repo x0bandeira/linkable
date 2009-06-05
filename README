@@ -3,24 +3,45 @@ CakePHP Plugin - PHP 5 only
 
 LinkableBehavior. Taking it easy in your DB.
 
-Light-weight approach for data mining on deep relations between models. 
-Join tables based on model relations to easily enable right to left find operations.
-Can be used as a alternative to the ContainableBehavior:
-- On data fetching only in right to left operations,
-wich means that in "one to many" relations (hasMany, hasAndBelongsToMany)
-should only be used from the "many to one" tables. i.e:
-To fetch all Users assigneds to a Project with ProjectAssignment,
-$Project->find('all', array('link' => 'User', 'conditions' => 'project_id = 1')) 
- - Won't produce the desired result as data came from users table will be lost.
-$User->find('all', array('link' => 'Project', 'conditions' => 'project_id = 1'))
- - Will fetch all users related to the specified project in one query
- - On data mining as a much lighter approach - can reduce 300+ query find operations in one single query with joins; "or your money back!" ;-)
- - Has the 'fields' param enabled to make it easy to replace Containable usage, only change the 'contain' param to 'link'.
-
-RafaelBandeira <rafaelbandeira3 (at) gmail (dot) com>
-http://rafaelbandeira3.wordpress.com
-
-Licensed under The MIT License
-Redistributions of files must retain the above copyright notice.
+This is a fork by GiulianoB (on github)
+It provides the following new features:
+-Plays nice with Containable which means that you can force INNER JOINS for hasOne/belongsTo and at the same time do a query on a hasMany/HABTM relationship.
  
-@version 1.0; 
+-The original code required the relationship to be established from the target to the source. 
+(e.g. if you are linking Post => User then User would have to define a hasOne Post relationship. 
+However, this proves problematic when doing on-the-fly binds as you would have to bind on more than just the model you are querying from)
+ 
+This hasn't gotten much testing but here is an example of how it can be used.
+
+Relationships involved:
+CasesRun is the HABTM table of TestRun <-> TestCases
+CasesRun belongsTo TestRun
+CasesRun belongsTo User
+CasesRun belongsTo TestCase
+TestCase belongsTo TestSuite
+TestSuite belongsTo TestHarness
+CasesRun HABTM Tags
+
+$this->TestRun->CasesRun->find('all', array(	
+	'link' => array(
+		'User' => array('fields' => 'username'), 
+		'TestCase' => array('fields' => array('TestCase.automated', 'TestCase.name'),
+			'TestSuite' => array('fields' => array('TestSuite.name'), 
+				'TestHarness' => array('fields' => array('TestHarness.name'))
+			)
+		)
+	),
+	'conditions' => array('test_run_id' => $id),
+	'contain' => array(
+		'Tag'					
+	),
+	'fields' => array(
+		'CasesRun.id', 'CasesRun.state', 'CasesRun.modified', 'CasesRun.comments'
+	)
+))
+
+Example output SQL:
+SELECT `CasesRun`.`id`, `CasesRun`.`state`, `CasesRun`.`modified`, `CasesRun`.`comments`, `User`.`username`, `TestCase`.`automated`, `TestCase`.`name`, `TestSuite`.`name`, `TestHarness`.`name` FROM `cases_runs` AS `CasesRun` LEFT JOIN `users` AS `User` ON (`User`.`id` = `CasesRun`.`user_id`) LEFT JOIN `test_cases` AS `TestCase` ON (`TestCase`.`id` = `CasesRun`.`test_case_id`) LEFT JOIN `test_suites` AS `TestSuite` ON (`TestSuite`.`id` = `TestCase`.`test_suite_id`) LEFT JOIN `test_harnesses` AS `TestHarness` ON (`TestHarness`.`id` = `TestSuite`.`test_harness_id`) WHERE `test_run_id` = 32
+
+SELECT `Tag`.`id`, `Tag`.`name`, `CasesRunsTag`.`id`, `CasesRunsTag`.`cases_run_id`, `CasesRunsTag`.`tag_id` FROM `tags` AS `Tag` JOIN `cases_runs_tags` AS `CasesRunsTag` ON (`CasesRunsTag`.`cases_run_id` IN (345325, 345326, 345327, 345328) AND `CasesRunsTag`.`tag_id` = `Tag`.`id`) WHERE 1 = 1 
+
