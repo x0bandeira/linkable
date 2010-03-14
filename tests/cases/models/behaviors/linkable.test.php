@@ -127,12 +127,47 @@ class LinkableTestCase extends CakeTestCase
 					)
 				)
 			),
-		
 			'limit'		=> 2
 		);
 		
 		$arrayResult	= $objController->paginate('User');
 
 		$this->assertEqual($objController->params['paging']['User']['count'], 4, 'Paging: total records count: %s');
+
+		// Pagination with order on a row from table joined with Linkable
+		$objController->paginate	= array(
+			'fields'	=> array(
+				'id'
+			),
+			'contain'	=> false,
+			'link'		=> array(
+				'Profile'	=> array(
+					'fields'	=> array(
+						'user_id'
+					)
+				)
+			),
+			'limit'		=> 2,
+			'order'		=> 'Profile.user_id DESC'
+		);
+
+		$arrayResult	= $objController->paginate('User');
+
+		$arrayExpected	= array(
+			0	=> array(
+				'User'	=> array(
+					'id' => 4
+				),
+				'Profile'	=> array ('user_id'	=> 4)
+			),
+			1	=> array(
+				'User'	=> array(
+					'id' => 3
+				),
+				'Profile'	=> array ('user_id'	=> 3)
+			)
+		);
+
+		$this->assertEqual($arrayResult, $arrayExpected, 'Paging with order on join table row: %s');
 	}
 }
