@@ -45,7 +45,7 @@ class LinkableTestCase extends CakeTestCase
 		$this->User	=& ClassRegistry::init('User');
 	}
 		
-	public function testLinkable()
+	public function testBelongsTo()
 	{
 		$arrayExpected	= array(
 			'User'	=> array('id' => 1, 'username' => 'CakePHP'),
