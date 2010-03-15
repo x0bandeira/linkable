@@ -93,7 +93,7 @@ class LinkableBehavior extends ModelBehavior {
 						$type = 'hasOne';
 						$association = $Reference->belongsTo[$_Model->alias];						
 					} else {
-						$_Model->bind($Reference->alias);
+						$_Model->bindModel(array('belongsTo' => array($Reference->alias)));
 						$type = 'belongsTo';
 						$association = $_Model->{$type}[$Reference->alias];
 						$_Model->unbindModel(array('belongsTo' => array($Reference->alias)));
