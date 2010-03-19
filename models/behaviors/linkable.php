@@ -163,17 +163,25 @@ class LinkableBehavior extends ModelBehavior {
 							$query['fields'] = array_merge($db->fields($Model), $options['fields']);
 						}
 					}
-					else if (isset($options['fields']) && !is_array($options['fields']))
+					else
 					{
 						if (!empty($association['fields']))
+						{
 							$options['fields'] = $db->fields($_Model, null, $association['fields']);
+						}
 						else
+						{
 							$options['fields'] = $db->fields($_Model);
+						}
 						
 						if (is_array($query['fields']))
+						{
 							$query['fields'] = array_merge($query['fields'], $options['fields']);
+						}
 						else
+						{
 							$query['fields'] = array_merge($db->fields($Model), $options['fields']);
+						}
 					}
 					
 					$options[$this->_key] = am($options[$this->_key], array_diff_key($options, $optionsKeys));
