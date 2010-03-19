@@ -5,6 +5,8 @@ App::import('Controller', 'Controller');
 
 class TestModel extends CakeTestModel
 {
+	public $useDbConfig	= 'test_suite';
+	
 	public $actsAs	= array(
 		'Containable',
 		'Linkable.Linkable'
@@ -13,9 +15,6 @@ class TestModel extends CakeTestModel
 
 class User extends TestModel
 {
-	public $name = 'User';
-	public $useDbConfig	= 'test_suite';
-
 	public $hasOne	= array(
 		'Profile'
 	);
@@ -27,11 +26,30 @@ class User extends TestModel
 
 class Profile extends TestModel
 {
-	public $name = 'Profile';
-	public $useDbConfig	= 'test_suite';
-	
 	public $belongsTo	= array(
 		'User'
+	);
+}
+
+class Post extends TestModel
+{
+	public $belongsTo	= array(
+		'User'
+	);
+	
+	public $hasAndBelongsToMany	= array(
+		'Tag'
+	);
+}
+
+class PostTag extends TestModel
+{
+}
+
+class Tag extends TestModel
+{
+	public $hasAndBelongsToMany	= array(
+		'Post'
 	);
 }
 
@@ -41,7 +59,11 @@ class LinkableTestCase extends CakeTestCase
 		'plugin.linkable.user',
 		'plugin.linkable.profile',
 		'plugin.linkable.generic',
-		'plugin.linkable.comment'
+		'plugin.linkable.comment',
+		'plugin.linkable.post',
+		'plugin.linkable.posts_tag',
+		'plugin.linkable.tag',
+		'plugin.linkable.user'
 	);
 	
 	public $Post;
@@ -98,7 +120,7 @@ class LinkableTestCase extends CakeTestCase
 
 		$this->assertTrue(isset($arrayResult['Profile']), 'belongsTo association via Linkable (automatic fields): %s');
 		$this->assertEqual($arrayResult, $arrayExpected, 'belongsTo association via Linkable (automatic fields): %s');
-
+		
 		// On-the-fly association via Linkable
 		$arrayExpected	= array(
 			'User'	=> array('id' => 1, 'username' => 'CakePHP'),
@@ -148,7 +170,7 @@ class LinkableTestCase extends CakeTestCase
 
 	public function testHasMany()
 	{
-		// hasMany association via Containable
+		// hasMany association via Containable. Should still work when Linkable is loaded
 		$arrayExpected	= array(
 			'User'	=> array('id' => 1, 'username' => 'CakePHP'),
 			'Comment'	=> array(
@@ -204,6 +226,78 @@ class LinkableTestCase extends CakeTestCase
 		));
 
 		$this->assertEqual($arrayResult, $arrayExpected, 'hasMany association via Linkable: %s');
+	}
+	
+	public function testComplexAssociations()
+	{
+		$this->Post	=& ClassRegistry::init('Post');
+		
+		$arrayExpected	= array(
+			'Post'	=> array('id' => 1, 'title'	=> 'Post 1', 'user_id' => 1),
+			'Tag'	=> array('name'	=> 'General'),
+			'Profile'	=> array('biography' => 'CakePHP is a rapid development framework for PHP that provides an extensible architecture for developing, maintaining, and deploying applications.'),
+			'MainTag'	=> array('name'	=> 'General'),
+			'Generic'	=> array('id' => 1,'text' => ''),
+			'User'	=> array('id' => 1, 'username' => 'CakePHP')
+		);
+		
+		$arrayResult	= $this->Post->find('first', array(
+			'conditions'	=> array(
+				'MainTag.id'	=> 1
+			),
+			'link'	=> array(
+				'User'	=> array(
+					'conditions'	=> 'Post.user_id = User.id',
+					'Profile'	=> array(
+						'fields'	=> array(
+							'biography'
+						),
+						'Generic'	=> array(
+							'class'			=> 'Generic',
+							'conditions'	=> 'User.id = Generic.id'
+						)
+					)
+				),
+				'Tag'	=> array(
+					'table'		=> 'tags',
+					'fields'	=> array(
+						'name'
+					)
+				),
+				'MainTag'	=> array(
+					'class'	=> 'Tag',
+					'conditions'	=> 'PostsTag.post_id = Post.id',
+					'fields'	=> array(
+						'MainTag.name'	// @fixme Wants to use class name (Tag) instead of alias (MainTag)
+					)
+				)
+			)
+		));
+
+		$this->assertEqual($arrayExpected, $arrayResult, 'Complex find: %s');
+		
+		// Linkable and Containable combined
+		$arrayExpected	= array(
+			'Post'	=> array('id' => 1, 'title'	=> 'Post 1', 'user_id' => 1),
+			'Tag'	=> array(
+				array('id' => 1, 'name' => 'General', 'PostsTag' => array('id' => 1, 'post_id' => 1, 'tag_id' => 1, 'main' => 0)),
+				array('id' => 2, 'name' => 'Test I', 'PostsTag' => array('id' => 2, 'post_id' => 1, 'tag_id' => 2, 'main' => 1))
+			),
+			'User'	=> array('id' => 1, 'username' => 'CakePHP')
+		);
+		
+		$arrayResult	= $this->Post->find('first', array(
+			'contain'	=> array(
+				'Tag'
+			),
+			'link'		=> array(
+				'User'	=> array(
+					'conditions' => 'User.id = Post.user_id'
+				)
+			)
+		));
+		
+		$this->assertEqual($arrayResult, $arrayExpected, 'Linkable and Containable combined: %s');
 	}
 	
 	public function testPagination()
