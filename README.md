@@ -4,10 +4,10 @@ CakePHP plugin, PHP 5
 http://github.com/Terr/linkable
 
 Maintained by:
-Arjen Verstoep <terr (at) terr (dot) nl>
+Arjen Verstoep [terr (at) terr (dot) nl]
 
 Originally authored by:
-RafaelBandeira <rafaelbandeira3 (at) gmail (dot) com>
+Rafael Bandeira [rafaelbandeira3 (at) gmail (dot) com]
 http://rafaelbandeira3.wordpress.com
 
 ## Introduction
