@@ -1,24 +1,15 @@
 # Linkable Plugin
 CakePHP plugin, PHP 5
 
-http://github.com/Terr/linkable
-
-Maintained by:
-Arjen Verstoep [terr (at) terr (dot) nl]
-
-Originally authored by:
-Rafael Bandeira [rafaelbandeira3 (at) gmail (dot) com]
-http://rafaelbandeira3.wordpress.com
-
-## Introduction
+## Introduction ##
 
 Linkable is a lightweight approach for data mining on deep relations between models. Joins tables based on model relations to easily enable right to left find operations.
 
-## Requirements
+## Requirements ##
 - CakePHP 1.2.x or 1.3.x
 - PHP 5
 
-## Installation
+## Installation ##
 
 1. [Download] the latest release for your version of CakePHP or clone the Github repository
 
@@ -28,7 +19,7 @@ Linkable is a lightweight approach for data mining on deep relations between mod
 
     var $actsAs = array('Linkable.Linkable');
 
-## Usage
+## Usage ##
 
 Use it as a option to a find call. For example, getting a Post record with their associated (belongsTo) author User record:
 
@@ -77,7 +68,9 @@ But what if you would still like all associated tags for the posts, while still 
 
 If you're thinking: yeesh, that is a lot of code, then I agree with you ;). Linkable's automagical handling of associations with non-standard names has room for improvement. Please, feel free to contribute to the project via GitHub.
 
-As a last example, pagination:
+### Pagination ###
+
+As a last example, pagination. This will find and paginate all posts with the tag 'CakePHP':
 
     $this->paginate = array(
         'fields'    => array(
@@ -94,9 +87,9 @@ As a last example, pagination:
     
     $this->paginate('Post');
 
-### Notes
+### Notes ##
 
-On data fetching in right to left operations, which means that in "one to many" relations (hasMany, hasAndBelongsToMany) it should be used in the opposite direction ("many to one"), i.e:
+When fetching data in right to left operations, meaning in "one to many" relations (hasMany, hasAndBelongsToMany), it should be used in the opposite direction ("many to one"), i.e:
 
 To fetch all Users assigned to a Project:
 
@@ -106,7 +99,11 @@ This won't produce the desired result as only a single user will be returned.
     $this->User->find('all', array('link' => 'Project', 'conditions' => 'project_id = 1'));
 This will fetch all users related to the specified project in one query.
 
-## License
+## Authors ##
+- Originally authored by: Rafael Bandeira (rafaelbandeira3 (at) gmail (dot) com), http://rafaelbandeira3.wordpress.com
+- Maintained by: Arjen Verstoep (terr (at) terr (dot) nl)
+
+## License ##
 
 Licensed under The MIT License
 Redistributions of files must retain the above copyright notice.
