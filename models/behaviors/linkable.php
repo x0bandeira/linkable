@@ -178,7 +178,8 @@ class LinkableBehavior extends ModelBehavior {
 						{
 							$query['fields'] = array_merge($query['fields'], $options['fields']);
 						}
-						else
+						// Leave COUNT() queries alone
+						elseif($query['fields'] != 'COUNT(*) AS `count`')
 						{
 							$query['fields'] = array_merge($db->fields($Model), $options['fields']);
 						}
