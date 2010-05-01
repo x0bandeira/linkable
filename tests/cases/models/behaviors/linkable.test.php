@@ -361,5 +361,18 @@ class LinkableTestCase extends CakeTestCase
 		);
 
 		$this->assertEqual($arrayResult, $arrayExpected, 'Paging with order on join table row: %s');
+		
+		// Pagination without specifying any fields
+		$objController->paginate	= array(
+			'contain'	=> false,
+			'link'		=> array(
+				'Profile'
+			),
+			'limit'		=> 2,
+			'order'		=> 'Profile.user_id DESC'
+		);
+
+		$arrayResult	= $objController->paginate('User');
+		$this->assertEqual($objController->params['paging']['User']['count'], 4, 'Paging without any field lists: total records count: %s');
 	}
 }
