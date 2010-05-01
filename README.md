@@ -101,7 +101,8 @@ This will fetch all users related to the specified project in one query.
 
 ## Authors ##
 - Originally authored by: Rafael Bandeira (rafaelbandeira3 (at) gmail (dot) com), http://rafaelbandeira3.wordpress.com
-- Maintained by: Arjen Verstoep (terr (at) terr (dot) nl)
+- Maintained by: Arjen Verstoep (terr (at) terr (dot) nl), http://github.com/Terr
+- Chad Jablonski, http://github.com/cjab
 
 ## License ##
 
