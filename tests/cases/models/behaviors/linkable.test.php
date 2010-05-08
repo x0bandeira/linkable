@@ -6,7 +6,7 @@ App::import('Controller', 'Controller');
 class TestModel extends CakeTestModel
 {
 	public $useDbConfig	= 'test_suite';
-	
+
 	public $actsAs	= array(
 		'Containable',
 		'Linkable.Linkable'
@@ -36,7 +36,7 @@ class Post extends TestModel
 	public $belongsTo	= array(
 		'User'
 	);
-	
+
 	public $hasAndBelongsToMany	= array(
 		'Tag'
 	);
@@ -275,7 +275,7 @@ class LinkableTestCase extends CakeTestCase
 		));
 
 		$this->assertEqual($arrayExpected, $arrayResult, 'Complex find: %s');
-		
+
 		// Linkable and Containable combined
 		$arrayExpected	= array(
 			'Post'	=> array('id' => 1, 'title'	=> 'Post 1', 'user_id' => 1),
@@ -285,7 +285,7 @@ class LinkableTestCase extends CakeTestCase
 			),
 			'User'	=> array('id' => 1, 'username' => 'CakePHP')
 		);
-		
+
 		$arrayResult	= $this->Post->find('first', array(
 			'contain'	=> array(
 				'Tag'
