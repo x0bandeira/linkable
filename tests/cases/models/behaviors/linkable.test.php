@@ -65,14 +65,14 @@ class LinkableTestCase extends CakeTestCase
 		'plugin.linkable.tag',
 		'plugin.linkable.user'
 	);
-	
+
 	public $Post;
-	
+
 	public function startTest()
 	{
 		$this->User	=& ClassRegistry::init('User');
 	}
-		
+
 	public function testBelongsTo()
 	{
 		$arrayExpected	= array(
@@ -120,7 +120,7 @@ class LinkableTestCase extends CakeTestCase
 
 		$this->assertTrue(isset($arrayResult['Profile']), 'belongsTo association via Linkable (automatic fields): %s');
 		$this->assertEqual($arrayResult, $arrayExpected, 'belongsTo association via Linkable (automatic fields): %s');
-		
+
 		// On-the-fly association via Linkable
 		$arrayExpected	= array(
 			'User'	=> array('id' => 1, 'username' => 'CakePHP'),
@@ -205,7 +205,7 @@ class LinkableTestCase extends CakeTestCase
 				'body'		=> 'Text'
 			)
 		);
-		
+
 		$arrayResult	= $this->User->find('first', array(
 			'fields'	=> array(
 				'id',
@@ -227,11 +227,11 @@ class LinkableTestCase extends CakeTestCase
 
 		$this->assertEqual($arrayResult, $arrayExpected, 'hasMany association via Linkable: %s');
 	}
-	
+
 	public function testComplexAssociations()
 	{
 		$this->Post	=& ClassRegistry::init('Post');
-		
+
 		$arrayExpected	= array(
 			'Post'	=> array('id' => 1, 'title'	=> 'Post 1', 'user_id' => 1),
 			'Tag'	=> array('name'	=> 'General'),
@@ -240,7 +240,7 @@ class LinkableTestCase extends CakeTestCase
 			'Generic'	=> array('id' => 1,'text' => ''),
 			'User'	=> array('id' => 1, 'username' => 'CakePHP')
 		);
-		
+
 		$arrayResult	= $this->Post->find('first', array(
 			'conditions'	=> array(
 				'MainTag.id'	=> 1
@@ -296,17 +296,17 @@ class LinkableTestCase extends CakeTestCase
 				)
 			)
 		));
-		
+
 		$this->assertEqual($arrayResult, $arrayExpected, 'Linkable and Containable combined: %s');
 	}
-	
+
 	public function testPagination()
 	{
 		$objController	= new Controller();
 		$objController->uses	= array('User');
 		$objController->constructClasses();
 		$objController->params['url']['url']	= '/';
-		
+
 		$objController->paginate	= array(
 			'fields'	=> array(
 				'username'
@@ -321,7 +321,7 @@ class LinkableTestCase extends CakeTestCase
 			),
 			'limit'		=> 2
 		);
-		
+
 		$arrayResult	= $objController->paginate('User');
 
 		$this->assertEqual($objController->params['paging']['User']['count'], 4, 'Paging: total records count: %s');
@@ -361,7 +361,7 @@ class LinkableTestCase extends CakeTestCase
 		);
 
 		$this->assertEqual($arrayResult, $arrayExpected, 'Paging with order on join table row: %s');
-		
+
 		// Pagination without specifying any fields
 		$objController->paginate	= array(
 			'contain'	=> false,
@@ -375,4 +375,3 @@ class LinkableTestCase extends CakeTestCase
 		$arrayResult	= $objController->paginate('User');
 		$this->assertEqual($objController->params['paging']['User']['count'], 4, 'Paging without any field lists: total records count: %s');
 	}
-}
