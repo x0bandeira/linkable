@@ -51,6 +51,41 @@ class Tag extends TestModel
 	public $hasAndBelongsToMany	= array(
 		'Post'
 	);
+
+	public $belongsTo	= array(
+		'Parent'	=> array(
+			'className'	=> 'Tag',
+			'foreignKey'	=> 'parent_id'
+		)
+	);
+}
+
+class LegacyProduct extends TestModel
+{
+	public $primaryKey	= 'product_id';
+
+	public $belongsTo	= array(
+		'Maker'	=> array(
+			'className'	=> 'LegacyCompany',
+			'foreignKey'	=> 'the_company_that_builds_it_id'
+		),
+		'Transporter'	=> array(
+			'className'	=> 'LegacyCompany',
+			'foreignKey'	=> 'the_company_that_delivers_it_id'
+		)
+	);
+}
+
+class LegacyCompany extends TestModel
+{
+	public $primaryKey	= 'company_id';
+
+	public $hasMany	= array(
+		'ProductsMade'	=> array(
+			'className'		=> 'LegacyProduct',
+			'foreignKey'	=> 'the_company_that_builds_it_id'
+		)
+	);
 }
 
 class LinkableTestCase extends CakeTestCase
@@ -63,7 +98,9 @@ class LinkableTestCase extends CakeTestCase
 		'plugin.linkable.post',
 		'plugin.linkable.posts_tag',
 		'plugin.linkable.tag',
-		'plugin.linkable.user'
+		'plugin.linkable.user',
+		'plugin.linkable.legacy_product',
+		'plugin.linkable.legacy_company'
 	);
 
 	public $Post;
@@ -280,8 +317,8 @@ class LinkableTestCase extends CakeTestCase
 		$arrayExpected	= array(
 			'Post'	=> array('id' => 1, 'title'	=> 'Post 1', 'user_id' => 1),
 			'Tag'	=> array(
-				array('id' => 1, 'name' => 'General', 'PostsTag' => array('id' => 1, 'post_id' => 1, 'tag_id' => 1, 'main' => 0)),
-				array('id' => 2, 'name' => 'Test I', 'PostsTag' => array('id' => 2, 'post_id' => 1, 'tag_id' => 2, 'main' => 1))
+				array('id' => 1, 'name' => 'General', 'parent_id' => null, 'PostsTag' => array('id' => 1, 'post_id' => 1, 'tag_id' => 1, 'main' => 0)),
+				array('id' => 2, 'name' => 'Test I', 'parent_id' => 1, 'PostsTag' => array('id' => 2, 'post_id' => 1, 'tag_id' => 2, 'main' => 1))
 			),
 			'User'	=> array('id' => 1, 'username' => 'CakePHP')
 		);
@@ -375,3 +412,173 @@ class LinkableTestCase extends CakeTestCase
 		$arrayResult	= $objController->paginate('User');
 		$this->assertEqual($objController->params['paging']['User']['count'], 4, 'Paging without any field lists: total records count: %s');
 	}
+
+	/**
+	 *	Series of tests that assert if Linkable can adapt to assocations that
+	 *	have aliases different from their standard model names
+	 */
+	public function testNonstandardAssociationNames()
+	{
+		$this->Tag	=& ClassRegistry::init('Tag');
+
+		$arrayExpected	= array(
+			'Tag'	=> array(
+				'name'	=> 'Test I'
+			),
+			'Parent'	=> array(
+				'name'	=> 'General'
+			)
+		);
+
+		$arrayResult	= $this->Tag->find('first', array(
+			'fields'	=> array(
+				'name'
+			),
+			'conditions'	=> array(
+				'Tag.id'	=> 2
+			),
+			'link'	=> array(
+				'Parent'	=> array(
+					'fields'	=> array(
+						'name'
+					)
+				)
+			)
+		));
+
+		$this->assertEqual($arrayExpected, $arrayResult, 'Association with non-standard name: %s');
+
+
+		$this->LegacyProduct	=& ClassRegistry::init('LegacyProduct');
+
+		$arrayExpected	= array(
+			'LegacyProduct'	=> array(
+				'name'	=> 'Velocipede'
+			),
+			'Maker'	=> array(
+				'company_name'	=> 'Vintage Stuff Manufactory'
+			),
+			'Transporter'	=> array(
+				'company_name'	=> 'Joe & Co Crate Shipping Company'
+			)
+		);
+
+		$arrayResult	= $this->LegacyProduct->find('first', array(
+			'fields'	=> array(
+				'name'
+			),
+			'conditions'	=> array(
+				'LegacyProduct.product_id'	=> 1
+			),
+			'link'	=> array(
+				'Maker'	=> array(
+					'fields'	=> array(
+						'company_name'
+					)
+				),
+				'Transporter'	=> array(
+					'fields'	=> array(
+						'company_name'
+					)
+				)
+			)
+		));
+
+		$this->assertEqual($arrayExpected, $arrayResult, 'belongsTo associations with custom foreignKey: %s');
+
+		$arrayExpected	= array(
+			'ProductsMade'	=> array(
+				'name'	=> 'Velocipede'
+			),
+			'Maker'	=> array(
+				'company_name'	=> 'Vintage Stuff Manufactory'
+			)
+		);
+
+		$arrayResult	= $this->LegacyProduct->Maker->find('first', array(
+			'fields'	=> array(
+				'company_name'
+			),
+			'conditions'	=> array(
+				'Maker.company_id'	=> 1
+			),
+			'link'	=> array(
+				'ProductsMade'	=> array(
+					'fields'	=> array(
+						'name'
+					)
+				)
+			)
+		));
+
+		$this->assertEqual($arrayExpected, $arrayResult, 'hasMany association with custom foreignKey: %s');
+
+
+		$this->Post	=& ClassRegistry::init('Post');
+
+		$arrayExpected	= array(
+			0 => array(
+				'Post' => array(
+					'id' => 1,
+					'title' => 'Post 1',
+					'user_id' => 1
+				),
+				'PostsTag' => array(
+					'id' => 1,
+					'post_id' => 1,
+					'tag_id' => 1,
+					'main' => 0
+				),
+				'TagFilter' => array(
+					'id' => 1
+				),
+				'Tag' => array(
+					0 => array(
+						'id' => 1,
+						'name' => 'General',
+						'parent_id' => NULL,
+						'PostsTag' => array(
+							'id' => 1,
+							'post_id' => 1,
+							'tag_id' => 1,
+							'main' => 0
+						)
+					),
+					1 => array(
+						'id' => 2,
+						'name' => 'Test I',
+						'parent_id' => 1,
+						'PostsTag' => array(
+							'id' => 2,
+							'post_id' => 1,
+							'tag_id' => 2,
+							'main' => 1
+						)
+					)
+				)
+			)
+		);
+
+		$arrayResult	= $this->Post->find('all', array(
+			'conditions'    => array(
+				'TagFilter.name'    => 'General'
+			),
+			'link'  => array(
+				'PostsTag'  => array(
+					'TagFilter' => array(
+						'class'         => 'Tag',
+						//'conditions'    => 'TagFilter.id = PostsTag.tag_id',
+						'fields'        => array(
+							'TagFilter.id'
+						)
+					)
+				)
+			),
+			'contain'   => array(
+				'Tag'
+			)
+		));
+
+		$this->assertEqual($arrayExpected, $arrayResult, 'On-the-fly HABTM association with alias different from model name: %s');
+	}
+}
