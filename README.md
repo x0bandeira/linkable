@@ -28,7 +28,7 @@ Use it as a option to a find call. For example, getting a Post record with their
 			'User'
 		)
 	));
-	
+
 This returns a Post record with it's associated User data. However, this isn't much different from what you can do Containable, and with the same amount of queries. Things start to change when linking hasMany or hasAndBelongsToMany associations.
 
 Because Linkable uses joins instead of seperate queries to get associated models, it is possible to apply conditions that operate from right to left (Tag -> Post) on hasMany and hasAndBelongsToMany associations.
@@ -84,7 +84,7 @@ As a last example, pagination. This will find and paginate all posts with the ta
 		)
         'limit' => 10
     );
-    
+
     $this->paginate('Post');
 
 ### Notes ##
@@ -104,6 +104,7 @@ This will fetch all users related to the specified project in one query.
 - Maintained by: Arjen Verstoep (terr (at) terr (dot) nl), http://github.com/Terr
 - giulianob, http://github.com/giulianob
 - Chad Jablonski, http://github.com/cjab
+- Nathan Porter, https://github.com/n8man
 
 ## License ##
 
