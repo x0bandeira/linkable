@@ -7,7 +7,7 @@
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * http://github.com/Terr/linkable
+ * https://github.com/Terr/linkable
  *
  * @version 1.0;
  */

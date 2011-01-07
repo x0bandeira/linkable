@@ -101,9 +101,9 @@ This will fetch all users related to the specified project in one query.
 
 ## Authors ##
 - Originally authored by: Rafael Bandeira (rafaelbandeira3 (at) gmail (dot) com), http://rafaelbandeira3.wordpress.com
-- Maintained by: Arjen Verstoep (terr (at) terr (dot) nl), http://github.com/Terr
-- giulianob, http://github.com/giulianob
-- Chad Jablonski, http://github.com/cjab
+- Maintained by: Arjen Verstoep (terr (at) terr (dot) nl), https://github.com/Terr
+- giulianob, https://github.com/giulianob
+- Chad Jablonski, https://github.com/cjab
 - Nathan Porter, https://github.com/n8man
 
 ## License ##
@@ -111,4 +111,4 @@ This will fetch all users related to the specified project in one query.
 Licensed under The MIT License
 Redistributions of files must retain the above copyright notice.
 
-[Download]: http://github.com/Terr/linkable/downloads
+[Download]: https://github.com/Terr/linkable/downloads
