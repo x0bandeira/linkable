@@ -88,6 +88,27 @@ class LegacyCompany extends TestModel
 	);
 }
 
+class Shipment extends TestModel
+{
+	public $belongsTo	= array(
+		'OrderItem'
+	);
+}
+
+class OrderItem extends TestModel
+{
+	public $hasMany	= array(
+		'Shipment'
+	);
+
+	public $belongsTo = array(
+		'ActiveShipment' => array(
+			'className' => 'Shipment',
+			'foreignKey' => 'active_shipment_id',
+		),
+	);
+}
+
 class LinkableTestCase extends CakeTestCase
 {
 	public $fixtures	= array(
@@ -100,7 +121,9 @@ class LinkableTestCase extends CakeTestCase
 		'plugin.linkable.tag',
 		'plugin.linkable.user',
 		'plugin.linkable.legacy_product',
-		'plugin.linkable.legacy_company'
+		'plugin.linkable.legacy_company',
+		'plugin.linkable.shipment',
+		'plugin.linkable.order_item',
 	);
 
 	public $Post;
@@ -512,5 +535,34 @@ class LinkableTestCase extends CakeTestCase
 		));
 
 		$this->assertEqual($arrayExpected, $arrayResult, 'hasMany association with custom foreignKey: %s');
+	}
+
+	public function testAliasedBelongsToWithSameModelAsHasMany()
+	{
+		$this->OrderItem	=& ClassRegistry::init('OrderItem');
+
+		$arrayExpected	= array(
+			0	=> array(
+				'OrderItem'	=> array(
+					'id'	=> 50,
+					'active_shipment_id'	=> 320
+				),
+				'ActiveShipment'	=> array(
+					'id'	=> 320,
+					'ship_date'	=> '2011-01-07',
+					'order_item_id'	=> 50
+				)
+			)
+		);
+
+		$arrayResult	= $this->OrderItem->find('all', array(
+			'recursive' => -1,
+			'conditions' => array(
+				'ActiveShipment.ship_date' => date('2011-01-07'),
+			),
+			'link' => array('ActiveShipment'),
+		));
+
+		$this->assertEqual($arrayExpected, $arrayResult, 'belongsTo association with alias (requested), with hasMany to the same model without alias: %s');
 	}
 }
