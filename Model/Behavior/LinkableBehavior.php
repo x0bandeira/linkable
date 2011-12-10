@@ -25,6 +25,8 @@ class LinkableBehavior extends ModelBehavior {
 
 	protected $_defaults = array('type' => 'LEFT');
 
+	public $settings = array();
+
 /**
  * Initializes this behavior for the model $Model
  *
@@ -35,9 +37,9 @@ class LinkableBehavior extends ModelBehavior {
 	public function setup(Model $Model, $settings = array()) {
 		if (!isset($this->settings[$Model->alias])) {
 			$this->settings[$Model->alias] = array(
-				'delimiter' => ';',
-				'enclosure' => '"',
-				'hasHeader' => true
+				'type' => true, 'table' => true, 'alias' => true,
+				'conditions' => true, 'fields' => true, 'reference' => true,
+				'class' => true, 'defaults' => true
 			);
 		}
 		$this->settings[$Model->alias] = array_merge($this->settings[$Model->alias], $settings);
@@ -88,21 +90,12 @@ class LinkableBehavior extends ModelBehavior {
 					}
 					App::uses('ConnectionManager', 'Model');
 					$sources = ConnectionManager::sourceList();
-					//diebug($options);
 
 					$_Model = ClassRegistry::init($options['class']);			// the incoming model to be linked in query
 					$Reference = ClassRegistry::init($options['reference']); 
-					//debug($_Model);
-					//diebug($Reference);	// the already in query model that links to $_Model
-					//$db =& $_Model->getDataSource();
+					// the already in query model that links to $_Model
 					$db = ConnectionManager::getDataSource($_Model->useDbConfig);
 					$associations = ConnectionManager::getDataSource($Reference->useDbConfig);
-					//debug($_Model);
-					//
-					//	debug($Reference);
-					//	debug($associations);
-					//	debug($associations[$Reference->alias]);
-					//	debug($Reference->belongsTo[$_Model->alias]);
 					if (isset($Reference->belongsTo[$_Model->alias])) {
 						$type = 'hasOne';
 						$association = $Reference->belongsTo[$_Model->alias];
@@ -155,16 +148,6 @@ class LinkableBehavior extends ModelBehavior {
 							$modelKey = $_Model->escapeField();
 							$options['conditions'] = "{$modelLink} = {$modelKey}";
 						} else {
-							//try {
-							//	$_Model->getDataSource()->fullTableName($_Model);	
-							//} catch(MissingTableException $e) {
-							//	if(array_key_exists($_Model->alias, array_flip(array_keys($Reference->belongsTo)))) {
-							//	//	debug($Reference->belongsTo[$_Model->alias]);
-							//	//die('self join');
-							//	}
-							//	//debug($_Model->alias);debug($Reference->belongsTo);
-							//	//die('self join');
-							//}
 							$referenceKey = $Reference->escapeField($association['foreignKey']);
 							$modelKey = $_Model->escapeField($_Model->primaryKey);
 							$options['conditions'] = "{$modelKey} = {$referenceKey}";
