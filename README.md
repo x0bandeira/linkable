@@ -81,7 +81,7 @@ As a last example, pagination. This will find and paginate all posts with the ta
 		),
 		'link'	=> array(
 			'Tag'
-		)
+		),
         'limit' => 10
     );
 

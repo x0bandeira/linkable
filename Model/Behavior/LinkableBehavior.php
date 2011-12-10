@@ -12,6 +12,7 @@
  * @version 1.0;
  */
 
+App::uses('ModelBehavior', 'Model');
 class LinkableBehavior extends ModelBehavior {
 
 	protected $_key = 'link';
@@ -24,7 +25,25 @@ class LinkableBehavior extends ModelBehavior {
 
 	protected $_defaults = array('type' => 'LEFT');
 
-	public function beforeFind(&$Model, $query) {
+/**
+ * Initializes this behavior for the model $Model
+ *
+ * @param Model $Model
+ * @param array $settigs list of settings to be used for this model
+ * @return void
+ */
+	public function setup(Model $Model, $settings = array()) {
+		if (!isset($this->settings[$Model->alias])) {
+			$this->settings[$Model->alias] = array(
+				'delimiter' => ';',
+				'enclosure' => '"',
+				'hasHeader' => true
+			);
+		}
+		$this->settings[$Model->alias] = array_merge($this->settings[$Model->alias], $settings);
+	}
+
+	public function beforeFind(Model $Model, $query) {
 		if (isset($query[$this->_key])) {
 
 			$optionsDefaults = $this->_defaults + array('reference' => $Model->alias, $this->_key => array());
@@ -67,16 +86,27 @@ class LinkableBehavior extends ModelBehavior {
 					} elseif (!empty($options['table']) && empty($options['class'])) {
 						$options['class'] = Inflector::classify($options['table']);
 					}
+					App::uses('ConnectionManager', 'Model');
+					$sources = ConnectionManager::sourceList();
+					//diebug($options);
 
-					$_Model =& ClassRegistry::init($options['class']);			// the incoming model to be linked in query
-					$Reference =& ClassRegistry::init($options['reference']); 	// the already in query model that links to $_Model
-					$db =& $_Model->getDataSource();
-					$associations = $_Model->getAssociated();
-
+					$_Model = ClassRegistry::init($options['class']);			// the incoming model to be linked in query
+					$Reference = ClassRegistry::init($options['reference']); 
+					//debug($_Model);
+					//diebug($Reference);	// the already in query model that links to $_Model
+					//$db =& $_Model->getDataSource();
+					$db = ConnectionManager::getDataSource($_Model->useDbConfig);
+					$associations = ConnectionManager::getDataSource($Reference->useDbConfig);
+					//debug($_Model);
+					//
+					//	debug($Reference);
+					//	debug($associations);
+					//	debug($associations[$Reference->alias]);
+					//	debug($Reference->belongsTo[$_Model->alias]);
 					if (isset($Reference->belongsTo[$_Model->alias])) {
 						$type = 'hasOne';
 						$association = $Reference->belongsTo[$_Model->alias];
-					} else if (isset($associations[$Reference->alias])) {
+					} else if (!empty($associations[$Reference->alias])) {
 						$type = $associations[$Reference->alias];
 						$association = $_Model->{$type}[$Reference->alias];
 					} else {
@@ -125,6 +155,16 @@ class LinkableBehavior extends ModelBehavior {
 							$modelKey = $_Model->escapeField();
 							$options['conditions'] = "{$modelLink} = {$modelKey}";
 						} else {
+							//try {
+							//	$_Model->getDataSource()->fullTableName($_Model);	
+							//} catch(MissingTableException $e) {
+							//	if(array_key_exists($_Model->alias, array_flip(array_keys($Reference->belongsTo)))) {
+							//	//	debug($Reference->belongsTo[$_Model->alias]);
+							//	//die('self join');
+							//	}
+							//	//debug($_Model->alias);debug($Reference->belongsTo);
+							//	//die('self join');
+							//}
 							$referenceKey = $Reference->escapeField($association['foreignKey']);
 							$modelKey = $_Model->escapeField($_Model->primaryKey);
 							$options['conditions'] = "{$modelKey} = {$referenceKey}";
