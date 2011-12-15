@@ -23,7 +23,7 @@
  * 
  * @version 1.2:
  * @modified Mark Scherer
- * - works with cakephp2.0 (not fully confirmed - test cases wont work)
+ * - works with cakephp2.0 (89.84 test coverage)
  */
 class LinkableBehavior extends ModelBehavior {
 	

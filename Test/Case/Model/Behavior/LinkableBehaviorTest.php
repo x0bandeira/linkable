@@ -465,7 +465,6 @@ class LinkableBehaviorTest extends CakeTestCase {
 
 
 class TestModel extends CakeTestModel {
-	//public $useDbConfig	= 'test';
 
 	public $recursive = 0;
 
