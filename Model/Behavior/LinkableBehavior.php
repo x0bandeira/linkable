@@ -156,12 +156,7 @@ class LinkableBehavior extends ModelBehavior {
 								$options['fields'] = $db->fields($_Model);
 							} else {
 								$options['fields'] = $db->fields($_Model, null, $options['fields']);	
-							}
-							
-							if (is_array($query['fields']))						
-								$query['fields'] = array_merge($query['fields'], $options['fields']);						
-							else						
-								$query['fields'] = array_merge($db->fields($Model), $options['fields']);						
+							}						
 						}
 						else if (!isset($options['fields']) || (isset($options['fields']) && !is_array($options['fields'])))
 						{
@@ -170,13 +165,16 @@ class LinkableBehavior extends ModelBehavior {
 							} else {
 									$options['fields'] = $db->fields($_Model);
 							}
-							
-							if (is_array($query['fields'])) {
-								$query['fields'] = array_merge($query['fields'], $options['fields']);
-							} else {
-								// If user didn't specify any fields then select all fields by default (just as find would)
-								$query['fields'] = array_merge($db->fields($Model), $options['fields']);
-							}
+						}
+						
+						if (!empty($options['class']) && $options['class'] !== $alias) {
+							$options['fields'] = str_replace($options['class'], $alias, $options['fields']);	
+						}
+						if (is_array($query['fields'])) {
+							$query['fields'] = array_merge($query['fields'], $options['fields']);
+						} else {
+							// If user didn't specify any fields then select all fields by default (just as find would)
+							$query['fields'] = array_merge($db->fields($Model), $options['fields']);
 						}
 					}
 					

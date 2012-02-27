@@ -225,7 +225,7 @@ class LinkableBehaviorTest extends CakeTestCase {
 					'class'	=> 'Tag',
 					'conditions'	=> array('exactly' => 'PostsTag.post_id = Post.id'),
 					'fields'	=> array(
-						'MainTag.name'	// @fixme Wants to use class name (Tag) instead of alias (MainTag)
+						'MainTag.name'
 					)
 				)
 			)
