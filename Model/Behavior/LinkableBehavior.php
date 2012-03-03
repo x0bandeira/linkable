@@ -106,6 +106,7 @@ class LinkableBehavior extends ModelBehavior {
 					} else {
 						if ($type === 'belongsTo') {
 							$modelKey = $_Model->escapeField($association['foreignKey']);
+							$modelKey = str_replace($_Model->alias, $options['alias'], $modelKey);
 							$referenceKey = $Reference->escapeField($Reference->primaryKey);
 							$options['conditions'][] = "{$referenceKey} = {$modelKey}";
 						} elseif ($type === 'hasAndBelongsToMany') {
@@ -134,14 +135,16 @@ class LinkableBehavior extends ModelBehavior {
 								'type' => 'LEFT'
 							);
 							$modelKey = $_Model->escapeField();
-							$options['conditions'][] = "{$modelLink} = {$modelKey}";						
+							$modelKey = str_replace($_Model->alias, $options['alias'], $modelKey);
+							$options['conditions'][] = "{$modelLink} = {$modelKey}";
 						} else {
 							$referenceKey = $Reference->escapeField($association['foreignKey']);
 							$modelKey = $_Model->escapeField($_Model->primaryKey);
+							$modelKey = str_replace($_Model->alias, $options['alias'], $modelKey);
 							$options['conditions'][] = "{$modelKey} = {$referenceKey}";
-						}					
+						}
 					}
-						
+					
 					if (empty($options['table'])) {
 						$options['table'] = $_Model->table;
 					}
